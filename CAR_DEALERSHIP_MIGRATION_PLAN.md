@@ -1,3 +1,4 @@
+i only use firebase use fro .env
 # Car Dealership Telegram Mini App - Migration Plan
 
 ## Executive Summary
