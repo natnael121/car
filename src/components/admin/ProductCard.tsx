@@ -1,6 +1,6 @@
 import React from 'react'
 import { Product } from '../../types'
-import { Package, FileEdit as Edit, Trash2, Star, AlertTriangle, Megaphone, Share2 } from 'lucide-react'
+import { Car, FileEdit as Edit, Trash2, Star, AlertTriangle, Megaphone, Share2 } from 'lucide-react'
 
 interface ProductCardProps {
   product: Product
@@ -11,7 +11,10 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit, onDelete, onPromote, onShare }) => {
-  const isLowStock = product.stock <= product.lowStockAlert
+  const isAvailable = product.stock > 0
+  const carYear = product.subcategory || ''
+  const transmission = product.tags?.find(t => t.toLowerCase().includes('automatic') || t.toLowerCase().includes('manual')) || ''
+  const mileage = product.dimensions?.length || 0
 
   return (
     <div className="bg-telegram-secondary-bg rounded-2xl p-4 active:scale-[0.99] transition-transform">
@@ -25,7 +28,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit, onDelete, on
             />
           ) : (
             <div className="w-20 h-20 bg-telegram-button/10 rounded-xl flex items-center justify-center">
-              <Package className="w-10 h-10 text-telegram-button" />
+              <Car className="w-10 h-10 text-telegram-button" />
             </div>
           )}
         </div>
@@ -37,46 +40,44 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit, onDelete, on
                 {product.featured && (
                   <Star className="w-4 h-4 text-amber-500 fill-current flex-shrink-0" />
                 )}
-                {isLowStock && (
+                {!isAvailable && (
                   <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
                 )}
               </div>
-              <p className="text-sm text-telegram-hint line-clamp-2">{product.description}</p>
+              <p className="text-sm text-telegram-hint">{carYear ? `${carYear} • ` : ''}{product.category}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <span className="text-lg font-bold text-telegram-button">
-              ${product.price.toFixed(2)}
+              ${product.price.toLocaleString()}
             </span>
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-              product.stock > product.lowStockAlert
+              isAvailable
                 ? 'bg-green-100 text-green-700'
-                : product.stock > 0
-                ? 'bg-amber-100 text-amber-700'
                 : 'bg-red-100 text-red-700'
             }`}>
-              {product.stock} left
+              {isAvailable ? 'Available' : 'Sold'}
             </span>
-            {product.sku && (
+            {mileage > 0 && (
               <span className="text-xs text-telegram-hint">
-                SKU: {product.sku}
+                {mileage.toLocaleString()} mi
               </span>
             )}
           </div>
 
-          {product.tags && product.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {product.tags.slice(0, 2).map((tag, index) => (
-                <span key={index} className="text-xs bg-telegram-button/10 text-telegram-button px-2 py-1 rounded-full font-medium">
-                  {tag}
-                </span>
-              ))}
-              {product.tags.length > 2 && (
-                <span className="text-xs text-telegram-hint">+{product.tags.length - 2}</span>
-              )}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {transmission && (
+              <span className="text-xs bg-telegram-button/10 text-telegram-button px-2 py-1 rounded-full font-medium">
+                {transmission}
+              </span>
+            )}
+            {product.sku && (
+              <span className="text-xs bg-telegram-button/10 text-telegram-button px-2 py-1 rounded-full font-medium">
+                VIN: {product.sku.slice(0, 8)}...
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center gap-1.5 mt-3">
             {onPromote && (

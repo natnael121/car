@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Product, Category } from '../../types'
-import { X, Save, Package, FileText, DollarSign, Image, Plus, Trash2, Tag } from 'lucide-react'
+import { X, Save, Car, FileText, DollarSign, Image, Plus, Trash2, Tag, Gauge, Calendar, Fuel, Settings } from 'lucide-react'
 import MultiImageUpload from '../common/MultiImageUpload'
 
 interface ProductEditModalProps {
@@ -22,13 +22,13 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     name: product?.name || '',
     description: product?.description || '',
     price: product?.price || 0,
-    stock: product?.stock || 0,
+    stock: product?.stock ?? 1,
     category: product?.category || '',
     subcategory: product?.subcategory || '',
     images: product?.images || [''],
     sku: product?.sku || '',
     isActive: product?.isActive ?? true,
-    lowStockAlert: product?.lowStockAlert || 5,
+    lowStockAlert: product?.lowStockAlert || 1,
     tags: product?.tags || [],
     featured: product?.featured || false,
     costPrice: product?.costPrice || 0,
@@ -104,33 +104,71 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h4 className="font-medium text-telegram-text border-b pb-2">Basic Information</h4>
-            
+            <h4 className="font-medium text-telegram-text border-b pb-2">Vehicle Information</h4>
+
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-telegram-text mb-1">
-                  <Package className="w-4 h-4 inline mr-1" />
-                  Product Name *
+                  <Car className="w-4 h-4 inline mr-1" />
+                  Make & Model *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                   className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
+                  placeholder="e.g., Toyota Camry"
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-telegram-text mb-1">
-                  SKU
+                  <Calendar className="w-4 h-4 inline mr-1" />
+                  Year *
+                </label>
+                <input
+                  type="text"
+                  value={formData.subcategory}
+                  onChange={(e) => setFormData({...formData, subcategory: e.target.value})}
+                  className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
+                  placeholder="e.g., 2020"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-telegram-text mb-1">
+                  VIN Number
                 </label>
                 <input
                   type="text"
                   value={formData.sku}
-                  onChange={(e) => setFormData({...formData, sku: e.target.value})}
+                  onChange={(e) => setFormData({...formData, sku: e.target.value.toUpperCase()})}
                   className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
-                  placeholder="Product SKU"
+                  placeholder="17-character VIN"
+                  maxLength={17}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-telegram-text mb-1">
+                  <Gauge className="w-4 h-4 inline mr-1" />
+                  Mileage *
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.dimensions.length}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    dimensions: { ...formData.dimensions, length: parseFloat(e.target.value) || 0 }
+                  })}
+                  className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
+                  placeholder="Miles"
+                  required
                 />
               </div>
             </div>
@@ -138,32 +176,32 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
             <div>
               <label className="block text-sm font-medium text-telegram-text mb-1">
                 <FileText className="w-4 h-4 inline mr-1" />
-                Description
+                Description & Features
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
-                rows={3}
-                placeholder="Product description..."
+                rows={4}
+                placeholder="Describe the vehicle condition, features, and highlights..."
               />
             </div>
           </div>
 
-          {/* Pricing & Inventory */}
+          {/* Pricing & Status */}
           <div className="space-y-4">
-            <h4 className="font-medium text-telegram-text border-b pb-2">Pricing & Inventory</h4>
-            
-            <div className="grid md:grid-cols-4 gap-4">
+            <h4 className="font-medium text-telegram-text border-b pb-2">Pricing & Availability</h4>
+
+            <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-telegram-text mb-1">
                   <DollarSign className="w-4 h-4 inline mr-1" />
-                  Price *
+                  Asking Price *
                 </label>
                 <input
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="100"
                   value={formData.price}
                   onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
                   className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
@@ -173,76 +211,53 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-telegram-text mb-1">
-                  Cost Price
+                  Purchase Price (Optional)
                 </label>
                 <input
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="100"
                   value={formData.costPrice}
                   onChange={(e) => setFormData({...formData, costPrice: parseFloat(e.target.value) || 0})}
                   className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
+                  placeholder="Your cost"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-telegram-text mb-1">
-                  Stock *
+                  Availability *
                 </label>
-                <input
-                  type="number"
-                  min="0"
+                <select
                   value={formData.stock}
-                  onChange={(e) => setFormData({...formData, stock: parseInt(e.target.value) || 0})}
+                  onChange={(e) => setFormData({...formData, stock: parseInt(e.target.value)})}
                   className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
                   required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-telegram-text mb-1">
-                  Low Stock Alert
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.lowStockAlert}
-                  onChange={(e) => setFormData({...formData, lowStockAlert: parseInt(e.target.value) || 0})}
-                  className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
-                />
+                >
+                  <option value="1">Available</option>
+                  <option value="0">Sold</option>
+                </select>
               </div>
             </div>
           </div>
 
-          {/* Categories */}
+          {/* Vehicle Type */}
           <div className="space-y-4">
-            <h4 className="font-medium text-telegram-text border-b pb-2">Categories</h4>
-            
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-telegram-text mb-1">Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.name}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
+            <h4 className="font-medium text-telegram-text border-b pb-2">Vehicle Type</h4>
 
-              <div>
-                <label className="block text-sm font-medium text-telegram-text mb-1">Subcategory</label>
-                <input
-                  type="text"
-                  value={formData.subcategory}
-                  onChange={(e) => setFormData({...formData, subcategory: e.target.value})}
-                  className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
-                  placeholder="Optional subcategory"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-telegram-text mb-1">Body Type *</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
+                required
+              >
+                <option value="">Select Body Type</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -250,23 +265,25 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
           <div className="space-y-4">
             <h4 className="font-medium text-telegram-text border-b pb-2">
               <Image className="w-4 h-4 inline mr-1" />
-              Product Images
+              Vehicle Photos
             </h4>
-            
+            <p className="text-xs text-telegram-hint">Upload clear photos from multiple angles (exterior, interior, engine, etc.)</p>
+
             <MultiImageUpload
               value={formData.images.filter(img => img.trim() !== '')}
               onChange={(urls) => setFormData({...formData, images: urls})}
-              maxImages={5}
+              maxImages={10}
             />
           </div>
 
-          {/* Tags */}
+          {/* Specifications */}
           <div className="space-y-4">
             <h4 className="font-medium text-telegram-text border-b pb-2">
-              <Tag className="w-4 h-4 inline mr-1" />
-              Tags
+              <Settings className="w-4 h-4 inline mr-1" />
+              Specifications & Features
             </h4>
-            
+            <p className="text-xs text-telegram-hint">Add key specs (e.g., Automatic, Manual, Gas, Diesel, Leather, Sunroof, etc.)</p>
+
             <div className="flex flex-wrap gap-2 mb-2">
               {formData.tags.map((tag, index) => (
                 <span
@@ -284,7 +301,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                 </span>
               ))}
             </div>
-            
+
             <div className="flex space-x-2">
               <input
                 type="text"
@@ -292,7 +309,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                 className="flex-1 p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
-                placeholder="Add a tag..."
+                placeholder="e.g., Automatic, Leather Interior, Sunroof"
               />
               <button
                 type="button"
@@ -304,82 +321,65 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
             </div>
           </div>
 
-          {/* Physical Properties */}
+          {/* Additional Details */}
           <div className="space-y-4">
-            <h4 className="font-medium text-telegram-text border-b pb-2">Physical Properties</h4>
-            
-            <div className="grid md:grid-cols-4 gap-4">
+            <h4 className="font-medium text-telegram-text border-b pb-2">Additional Details</h4>
+
+            <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-telegram-text mb-1">
-                  Weight (kg)
+                  <Fuel className="w-4 h-4 inline mr-1" />
+                  Engine Size (L)
                 </label>
                 <input
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="0.1"
                   value={formData.weight}
                   onChange={(e) => setFormData({...formData, weight: parseFloat(e.target.value) || 0})}
                   className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
+                  placeholder="e.g., 2.5"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-telegram-text mb-1">
-                  Length (cm)
+                  Exterior Color
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.dimensions.length}
-                  onChange={(e) => setFormData({
-                    ...formData, 
-                    dimensions: { ...formData.dimensions, length: parseFloat(e.target.value) || 0 }
-                  })}
-                  className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-telegram-text mb-1">
-                  Width (cm)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
+                  type="text"
                   value={formData.dimensions.width}
                   onChange={(e) => setFormData({
-                    ...formData, 
+                    ...formData,
                     dimensions: { ...formData.dimensions, width: parseFloat(e.target.value) || 0 }
                   })}
                   className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
+                  placeholder="e.g., Black"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-telegram-text mb-1">
-                  Height (cm)
+                  Interior Color
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  step="0.01"
+                  type="text"
                   value={formData.dimensions.height}
                   onChange={(e) => setFormData({
-                    ...formData, 
+                    ...formData,
                     dimensions: { ...formData.dimensions, height: parseFloat(e.target.value) || 0 }
                   })}
                   className="w-full p-3 border rounded-lg bg-telegram-secondary-bg text-telegram-text"
+                  placeholder="e.g., Beige"
                 />
               </div>
             </div>
           </div>
 
-          {/* Status Options */}
+          {/* Listing Options */}
           <div className="space-y-4">
-            <h4 className="font-medium text-telegram-text border-b pb-2">Status</h4>
-            
+            <h4 className="font-medium text-telegram-text border-b pb-2">Listing Options</h4>
+
             <div className="flex items-center space-x-6">
               <div className="flex items-center">
                 <input
@@ -390,10 +390,10 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                   className="mr-2"
                 />
                 <label htmlFor="isActive" className="text-sm text-telegram-text">
-                  Product is active
+                  Listing is active
                 </label>
               </div>
-              
+
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -403,7 +403,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                   className="mr-2"
                 />
                 <label htmlFor="featured" className="text-sm text-telegram-text">
-                  Featured product
+                  Featured listing
                 </label>
               </div>
             </div>
@@ -416,7 +416,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               className="flex-1 bg-telegram-button text-telegram-button-text py-3 rounded-lg flex items-center justify-center space-x-2"
             >
               <Save className="w-4 h-4" />
-              <span>{product ? 'Update' : 'Add'} Product</span>
+              <span>{product ? 'Update' : 'Add'} Vehicle</span>
             </button>
             <button
               type="button"

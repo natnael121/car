@@ -3,7 +3,7 @@ import { Product, OrderItem } from '../types'
 import {
   X,
   Star,
-  Package,
+  Car,
   ShoppingCart,
   Plus,
   Minus,
@@ -11,10 +11,11 @@ import {
   ArrowRight,
   Heart,
   Info,
-  Truck,
-  Shield,
-  Clock,
-  Share2
+  Gauge,
+  Calendar,
+  Settings,
+  Share2,
+  Phone
 } from 'lucide-react'
 import { shopLinkUtils } from '../utils/shopLinks'
 
@@ -45,23 +46,20 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   const [activeTab, setActiveTab] = useState<'details' | 'specs' | 'reviews'>('details')
 
   const images = product.images && product.images.length > 0 ? product.images : ['/placeholder-product.jpg']
-  const isLowStock = product.stock <= product.lowStockAlert
-  const isOutOfStock = product.stock === 0
+  const isAvailable = product.stock > 0
+  const isSold = product.stock === 0
+  const carYear = product.subcategory || ''
+  const mileage = product.dimensions?.length || 0
+  const engineSize = product.weight || 0
+  const exteriorColor = product.dimensions?.width || 0
+  const interiorColor = product.dimensions?.height || 0
 
-  const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity < 1) return
-    if (newQuantity > product.stock) return
-    
-    setQuantity(newQuantity)
-    
-    if (cartItem && onUpdateCartQuantity) {
-      onUpdateCartQuantity(product.id, newQuantity)
-    }
-  }
-
-  const handleAddToCart = () => {
-    if (!isOutOfStock) {
-      onAddToCart(product, quantity)
+  const handleInquire = () => {
+    if (shopName && window.Telegram?.WebApp) {
+      const message = `Hi! I'm interested in the ${product.name} ${carYear ? `(${carYear})` : ''} listed at $${product.price.toLocaleString()}. Is it still available?`
+      if (window.Telegram?.WebApp?.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(`https://t.me/${shopName}?text=${encodeURIComponent(message)}`)
+      }
     }
   }
 
@@ -197,19 +195,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                   Featured
                 </span>
               )}
-              {isLowStock && !isOutOfStock && (
-                <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                  Low Stock
-                </span>
-              )}
-              {isOutOfStock && (
+              {isSold && (
                 <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                  Out of Stock
+                  Sold
                 </span>
               )}
-              {calculateSavings() && (
+              {isAvailable && (
                 <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                  {calculateSavings()}% OFF
+                  Available
                 </span>
               )}
             </div>
@@ -257,42 +250,58 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
               </div>
             </div>
             
-            {/* Category and SKU */}
+            {/* Year and Body Type */}
             <div className="flex items-center space-x-4 text-sm text-telegram-hint">
-              <span className="capitalize">{product.category}</span>
-              {product.sku && (
-                <>
-                  <span>•</span>
-                  <span>SKU: {product.sku}</span>
-                </>
+              {carYear && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  {carYear}
+                </span>
               )}
+              <span>•</span>
+              <span className="capitalize">{product.category}</span>
             </div>
           </div>
 
-          {/* Stock Status */}
-          <div className="flex items-center space-x-2">
-            <Package className="w-4 h-4 text-telegram-hint" />
-            <span className={`text-sm font-medium ${
-              isOutOfStock ? 'text-red-500' : 
-              isLowStock ? 'text-orange-500' : 'text-green-500'
-            }`}>
-              {isOutOfStock ? 'Out of Stock' : 
-               isLowStock ? `Only ${product.stock} left` : 
-               `${product.stock} in stock`}
-            </span>
+          {/* Key Stats */}
+          <div className="grid grid-cols-2 gap-3">
+            {mileage > 0 && (
+              <div className="flex items-center space-x-2 bg-telegram-secondary-bg p-2 rounded-lg">
+                <Gauge className="w-4 h-4 text-telegram-button" />
+                <div>
+                  <p className="text-xs text-telegram-hint">Mileage</p>
+                  <p className="text-sm font-medium text-telegram-text">{mileage.toLocaleString()} mi</p>
+                </div>
+              </div>
+            )}
+            {product.sku && (
+              <div className="flex items-center space-x-2 bg-telegram-secondary-bg p-2 rounded-lg">
+                <Car className="w-4 h-4 text-telegram-button" />
+                <div>
+                  <p className="text-xs text-telegram-hint">VIN</p>
+                  <p className="text-sm font-medium text-telegram-text">{product.sku.slice(0, 8)}...</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Tags */}
+          {/* Specifications */}
           {product.tags && product.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {product.tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="bg-telegram-button bg-opacity-10 text-telegram-button px-2 py-1 rounded-full text-xs"
-                >
-                  {tag}
-                </span>
-              ))}
+            <div className="bg-telegram-secondary-bg p-3 rounded-lg">
+              <h4 className="text-xs font-medium text-telegram-hint mb-2 flex items-center gap-1">
+                <Settings className="w-3 h-3" />
+                Key Features
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {product.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="bg-telegram-button bg-opacity-10 text-telegram-button px-2 py-1 rounded-full text-xs font-medium"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
@@ -300,9 +309,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
           <div className="border-b border-telegram-hint/20">
             <div className="flex space-x-6">
               {[
-                { id: 'details', label: 'Details' },
-                { id: 'specs', label: 'Specs' },
-                { id: 'reviews', label: 'Reviews' }
+                { id: 'details', label: 'Overview' },
+                { id: 'specs', label: 'Specifications' }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -349,30 +357,19 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                   </div>
                 </div>
 
-                {/* Features */}
-                <div className="grid grid-cols-1 gap-3">
-                  <div className="flex items-center space-x-3 p-3 bg-telegram-secondary-bg rounded-lg">
-                    <Truck className="w-5 h-5 text-telegram-button" />
-                    <div>
-                      <p className="text-sm font-medium text-telegram-text">Free Delivery</p>
-                      <p className="text-xs text-telegram-hint">On orders over $50</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3 p-3 bg-telegram-secondary-bg rounded-lg">
-                    <Shield className="w-5 h-5 text-telegram-button" />
-                    <div>
-                      <p className="text-sm font-medium text-telegram-text">Quality Guarantee</p>
-                      <p className="text-xs text-telegram-hint">30-day return policy</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3 p-3 bg-telegram-secondary-bg rounded-lg">
-                    <Clock className="w-5 h-5 text-telegram-button" />
-                    <div>
-                      <p className="text-sm font-medium text-telegram-text">Fast Processing</p>
-                      <p className="text-xs text-telegram-hint">Ships within 24 hours</p>
-                    </div>
+                {/* Vehicle Highlights */}
+                <div className="bg-telegram-secondary-bg p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-telegram-text mb-3">Vehicle Highlights</h4>
+                  <div className="space-y-2 text-sm text-telegram-hint">
+                    {carYear && <p>• Model Year: {carYear}</p>}
+                    {mileage > 0 && <p>• Odometer: {mileage.toLocaleString()} miles</p>}
+                    {engineSize > 0 && <p>• Engine: {engineSize}L</p>}
+                    {product.tags && product.tags.length > 0 && (
+                      <p>• Transmission: {product.tags.find(t => t.toLowerCase().includes('automatic') || t.toLowerCase().includes('manual')) || 'Contact for details'}</p>
+                    )}
+                    {product.tags?.find(t => t.toLowerCase().includes('gas') || t.toLowerCase().includes('diesel') || t.toLowerCase().includes('hybrid') || t.toLowerCase().includes('electric')) && (
+                      <p>• Fuel Type: {product.tags.find(t => t.toLowerCase().includes('gas') || t.toLowerCase().includes('diesel') || t.toLowerCase().includes('hybrid') || t.toLowerCase().includes('electric'))}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -380,121 +377,79 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
             {activeTab === 'specs' && (
               <div className="space-y-3">
-                <h3 className="font-medium text-telegram-text mb-3">Specifications</h3>
+                <h3 className="font-medium text-telegram-text mb-3">Technical Specifications</h3>
                 <div className="space-y-2">
-                  {product.weight && product.weight > 0 && (
+                  {carYear && (
                     <div className="flex justify-between py-2 border-b border-telegram-hint/10">
-                      <span className="text-telegram-hint">Weight</span>
-                      <span className="text-telegram-text">{product.weight} kg</span>
+                      <span className="text-telegram-hint">Year</span>
+                      <span className="text-telegram-text">{carYear}</span>
                     </div>
                   )}
-                  
-                  {product.dimensions && (
-                    <>
-                      {product.dimensions.length > 0 && (
-                        <div className="flex justify-between py-2 border-b border-telegram-hint/10">
-                          <span className="text-telegram-hint">Length</span>
-                          <span className="text-telegram-text">{product.dimensions.length} cm</span>
-                        </div>
-                      )}
-                      {product.dimensions.width > 0 && (
-                        <div className="flex justify-between py-2 border-b border-telegram-hint/10">
-                          <span className="text-telegram-hint">Width</span>
-                          <span className="text-telegram-text">{product.dimensions.width} cm</span>
-                        </div>
-                      )}
-                      {product.dimensions.height > 0 && (
-                        <div className="flex justify-between py-2 border-b border-telegram-hint/10">
-                          <span className="text-telegram-hint">Height</span>
-                          <span className="text-telegram-text">{product.dimensions.height} cm</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                  
+
                   <div className="flex justify-between py-2 border-b border-telegram-hint/10">
-                    <span className="text-telegram-hint">Category</span>
+                    <span className="text-telegram-hint">Body Type</span>
                     <span className="text-telegram-text capitalize">{product.category}</span>
                   </div>
-                  
-                  {product.subcategory && (
+
+                  {mileage > 0 && (
                     <div className="flex justify-between py-2 border-b border-telegram-hint/10">
-                      <span className="text-telegram-hint">Subcategory</span>
-                      <span className="text-telegram-text capitalize">{product.subcategory}</span>
+                      <span className="text-telegram-hint">Mileage</span>
+                      <span className="text-telegram-text">{mileage.toLocaleString()} miles</span>
                     </div>
                   )}
+
+                  {engineSize > 0 && (
+                    <div className="flex justify-between py-2 border-b border-telegram-hint/10">
+                      <span className="text-telegram-hint">Engine Size</span>
+                      <span className="text-telegram-text">{engineSize}L</span>
+                    </div>
+                  )}
+
+                  {product.sku && (
+                    <div className="flex justify-between py-2 border-b border-telegram-hint/10">
+                      <span className="text-telegram-hint">VIN</span>
+                      <span className="text-telegram-text text-xs">{product.sku}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between py-2 border-b border-telegram-hint/10">
+                    <span className="text-telegram-hint">Status</span>
+                    <span className={`text-telegram-text font-medium ${
+                      isAvailable ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {isAvailable ? 'Available' : 'Sold'}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
 
-            {activeTab === 'reviews' && (
-              <div className="space-y-3">
-                <div className="text-center py-8">
-                  <Star className="w-12 h-12 mx-auto text-telegram-hint mb-3" />
-                  <h3 className="font-medium text-telegram-text mb-2">No Reviews Yet</h3>
-                  <p className="text-sm text-telegram-hint">Be the first to review this product!</p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
         {/* Bottom Action Bar */}
         <div className="sticky bottom-0 bg-telegram-bg border-t border-telegram-hint/20 p-4">
-          <div className="flex items-center space-x-4">
-            {/* Quantity Selector */}
-            {!isOutOfStock && (
-              <div className="flex items-center space-x-2 bg-telegram-secondary-bg rounded-lg p-1">
-                <button
-                  onClick={() => handleQuantityChange(quantity - 1)}
-                  disabled={quantity <= 1}
-                  className="p-2 rounded-lg hover:bg-telegram-hint hover:bg-opacity-20 disabled:opacity-50"
-                >
-                  <Minus className="w-4 h-4 text-telegram-text" />
-                </button>
-                <span className="px-3 py-1 text-telegram-text font-medium min-w-[2rem] text-center">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => handleQuantityChange(quantity + 1)}
-                  disabled={quantity >= product.stock}
-                  className="p-2 rounded-lg hover:bg-telegram-hint hover:bg-opacity-20 disabled:opacity-50"
-                >
-                  <Plus className="w-4 h-4 text-telegram-text" />
-                </button>
-              </div>
-            )}
-
-            {/* Add to Cart / Checkout Buttons */}
-            {cartItem ? (
-              <button
-                onClick={handleCheckout}
-                disabled={!onCheckout}
-                className="flex-1 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-green-600 text-white hover:bg-green-700 active:scale-95 transition-all"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                <span>Checkout • {formatPrice(product.price * quantity)}</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleAddToCart}
-                disabled={isOutOfStock}
-                className={`flex-1 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 active:scale-95 transition-all ${
-                  isOutOfStock
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-telegram-button text-telegram-button-text hover:opacity-90'
-                }`}
-              >
-                <ShoppingCart className="w-5 h-5" />
-                <span>
-                  {isOutOfStock
-                    ? 'Out of Stock'
-                    : `Add to Cart • ${formatPrice(product.price * quantity)}`
-                  }
-                </span>
-              </button>
-            )}
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleInquire}
+              disabled={isSold}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 active:scale-95 transition-all ${
+                isSold
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-telegram-button text-telegram-button-text hover:opacity-90'
+              }`}
+            >
+              <Phone className="w-5 h-5" />
+              <span>
+                {isSold ? 'Vehicle Sold' : 'Contact Dealer'}
+              </span>
+            </button>
           </div>
+          {isAvailable && (
+            <p className="text-xs text-center text-telegram-hint mt-2">
+              Schedule a test drive or request more information
+            </p>
+          )}
         </div>
       </div>
     </div>
