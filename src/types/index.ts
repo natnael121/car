@@ -174,6 +174,38 @@ export interface Shop {
   updatedAt: Date
 }
 
+export type DealershipType = 'new' | 'used' | 'both'
+
+export interface Dealership extends Shop {
+  dealerLicenseNumber: string
+  dealershipType: DealershipType
+  brandsCarried: string[]
+  serviceDepartment?: {
+    hasServiceDepartment: boolean
+    serviceBays?: number
+    serviceHours?: {
+      monday?: string
+      tuesday?: string
+      wednesday?: string
+      thursday?: string
+      friday?: string
+      saturday?: string
+      sunday?: string
+    }
+    certifiedBrands?: string[]
+  }
+  financingPartners: string[]
+  acceptsTradeIns: boolean
+  testDriveAvailable: boolean
+  deliveryOptions: {
+    pickup: boolean
+    localDelivery: boolean
+    shipping: boolean
+    deliveryRadius?: number
+    deliveryFee?: number
+  }
+}
+
 export interface Product {
   id: string
   shopId: string
@@ -198,6 +230,84 @@ export interface Product {
   }
   createdAt: Date
   updatedAt: Date
+}
+
+export type TransmissionType = 'automatic' | 'manual' | 'cvt' | 'dual-clutch'
+export type DrivetrainType = 'fwd' | 'rwd' | 'awd' | '4wd'
+export type FuelType = 'gasoline' | 'diesel' | 'hybrid' | 'plug-in-hybrid' | 'electric' | 'flex-fuel'
+export type BodyType = 'sedan' | 'suv' | 'truck' | 'coupe' | 'convertible' | 'wagon' | 'van' | 'hatchback'
+export type VehicleCondition = 'new' | 'used' | 'certified-pre-owned'
+export type TitleStatus = 'clean' | 'salvage' | 'rebuilt' | 'lemon' | 'flood-damage'
+
+export interface ServiceRecord {
+  id: string
+  date: Date
+  mileage: number
+  serviceType: string
+  description: string
+  cost: number
+  servicedBy: string
+  invoiceUrl?: string
+  nextServiceDue?: Date
+  nextServiceMileage?: number
+}
+
+export interface AccidentHistory {
+  id: string
+  date: Date
+  description: string
+  damageAmount: number
+  repaired: boolean
+  reportUrl?: string
+}
+
+export interface WarrantyInfo {
+  type: 'factory' | 'extended' | 'powertrain' | 'corrosion' | 'roadside'
+  provider: string
+  startDate: Date
+  endDate: Date
+  mileageLimit?: number
+  coverageDetails: string
+  transferable: boolean
+}
+
+export interface Vehicle extends Omit<Product, 'weight' | 'dimensions' | 'lowStockAlert'> {
+  vin: string
+  make: string
+  model: string
+  year: number
+  trim?: string
+  mileage: number
+  mileageUnit: 'miles' | 'kilometers'
+  engineSize?: number
+  engineType?: string
+  cylinders?: number
+  transmission: TransmissionType
+  drivetrain: DrivetrainType
+  exteriorColor: string
+  interiorColor: string
+  fuelType: FuelType
+  bodyType: BodyType
+  condition: VehicleCondition
+  serviceHistory: ServiceRecord[]
+  accidentHistory: AccidentHistory[]
+  previousOwners: number
+  titleStatus: TitleStatus
+  registrationExpiry?: Date
+  lastInspectionDate?: Date
+  warranty?: WarrantyInfo[]
+  features: string[]
+  mpgCity?: number
+  mpgHighway?: number
+  mpgCombined?: number
+  seatingCapacity?: number
+  doors?: number
+  daysOnLot?: number
+  viewCount?: number
+  inquiryCount?: number
+  listingUrl?: string
+  carfaxUrl?: string
+  autoCheckUrl?: string
 }
 
 export interface OrderItem {
@@ -338,6 +448,237 @@ export interface CRMStats {
   activeThisWeek: number
   inactive30Plus: number
   topTags: Array<{ tag: string; count: number }>
+}
+
+export type TestDriveStatus = 'pending' | 'scheduled' | 'completed' | 'cancelled' | 'no-show'
+
+export interface TestDrive {
+  id: string
+  dealershipId: string
+  vehicleId: string
+  vehicleDetails?: {
+    make: string
+    model: string
+    year: number
+    vin: string
+  }
+  customerId?: string
+  customerInfo: {
+    name: string
+    email?: string
+    phone: string
+    telegramId?: number
+    telegramUsername?: string
+  }
+  driversLicense?: {
+    number: string
+    state: string
+    expirationDate: Date
+    verified: boolean
+    photoUrl?: string
+  }
+  preferredDateTime: Date
+  alternativeDateTime?: Date
+  scheduledDateTime?: Date
+  duration: number
+  status: TestDriveStatus
+  notes?: string
+  specialRequirements?: string
+  salesRepId?: string
+  salesRepName?: string
+  checkInTime?: Date
+  checkOutTime?: Date
+  feedback?: string
+  followUpScheduled?: boolean
+  followUpDate?: Date
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type TradeInStatus = 'submitted' | 'evaluating' | 'inspected' | 'offer-made' | 'approved' | 'declined' | 'accepted' | 'completed'
+
+export interface TradeInVehicle {
+  vin?: string
+  make: string
+  model: string
+  year: number
+  trim?: string
+  mileage: number
+  mileageUnit: 'miles' | 'kilometers'
+  exteriorColor?: string
+  interiorColor?: string
+  transmission?: TransmissionType
+  condition: 'excellent' | 'good' | 'fair' | 'poor'
+  knownIssues?: string[]
+  modifications?: string[]
+  accidentHistory?: string
+  serviceRecords?: boolean
+  hasTitle: boolean
+  lienHolder?: string
+  outstandingLoan?: number
+}
+
+export interface TradeIn {
+  id: string
+  dealershipId: string
+  customerId?: string
+  customerInfo: {
+    name: string
+    email?: string
+    phone: string
+    telegramId?: number
+    telegramUsername?: string
+  }
+  vehicle: TradeInVehicle
+  photos: string[]
+  askingPrice?: number
+  estimatedValue?: number
+  offerAmount?: number
+  offerValidUntil?: Date
+  status: TradeInStatus
+  evaluationNotes?: string
+  inspectionDate?: Date
+  inspectionNotes?: string
+  inspectorName?: string
+  interestedInVehicleId?: string
+  applyTowardsPurchase?: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type FinancingStatus = 'submitted' | 'reviewing' | 'documents-requested' | 'pre-approved' | 'approved' | 'declined' | 'cancelled'
+
+export interface FinancingApplication {
+  id: string
+  dealershipId: string
+  vehicleId?: string
+  vehicleDetails?: {
+    make: string
+    model: string
+    year: number
+    vin?: string
+    price: number
+  }
+  customerId?: string
+  applicantInfo: {
+    firstName: string
+    lastName: string
+    email?: string
+    phone: string
+    telegramId?: number
+    dateOfBirth: Date
+    ssn?: string
+    driversLicense?: string
+    address: {
+      street: string
+      city: string
+      state: string
+      zipCode: string
+      country: string
+    }
+  }
+  employmentInfo: {
+    status: 'employed' | 'self-employed' | 'retired' | 'unemployed'
+    employer?: string
+    jobTitle?: string
+    yearsEmployed?: number
+    monthlyIncome: number
+    additionalIncome?: number
+  }
+  coApplicant?: {
+    firstName: string
+    lastName: string
+    email?: string
+    phone: string
+    dateOfBirth: Date
+    ssn?: string
+    relationship: string
+    employmentInfo: {
+      status: 'employed' | 'self-employed' | 'retired' | 'unemployed'
+      employer?: string
+      monthlyIncome: number
+    }
+  }
+  financingDetails: {
+    downPayment: number
+    tradeInValue?: number
+    tradeInId?: string
+    loanAmount: number
+    desiredTerm: number
+    monthlyBudget?: number
+    creditScoreRange?: 'excellent' | 'good' | 'fair' | 'poor' | 'unknown'
+  }
+  status: FinancingStatus
+  creditScore?: number
+  approvedLender?: string
+  approvedAmount?: number
+  approvedRate?: number
+  approvedTerm?: number
+  monthlyPayment?: number
+  documents: {
+    name: string
+    url: string
+    uploadedAt: Date
+  }[]
+  notes?: string
+  salesRepId?: string
+  financeManagerId?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type ServiceAppointmentStatus = 'requested' | 'scheduled' | 'confirmed' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled' | 'no-show'
+export type ServiceType = 'oil-change' | 'tire-rotation' | 'brake-service' | 'engine-diagnostic' | 'inspection' | 'maintenance' | 'repair' | 'recall' | 'warranty' | 'custom'
+
+export interface ServiceAppointment {
+  id: string
+  dealershipId: string
+  vehicleVin?: string
+  vehicleInfo?: {
+    make: string
+    model: string
+    year: number
+    vin: string
+    mileage?: number
+  }
+  customerId?: string
+  customerInfo: {
+    name: string
+    email?: string
+    phone: string
+    telegramId?: number
+  }
+  serviceType: ServiceType
+  serviceDescription: string
+  appointmentDateTime: Date
+  estimatedDuration: number
+  estimatedCost?: number
+  actualCost?: number
+  status: ServiceAppointmentStatus
+  serviceAdvisorId?: string
+  serviceAdvisorName?: string
+  technicianId?: string
+  technicianName?: string
+  serviceBay?: string
+  checkInTime?: Date
+  startTime?: Date
+  completionTime?: Date
+  workPerformed?: string[]
+  partsReplaced?: {
+    partName: string
+    partNumber?: string
+    quantity: number
+    cost: number
+  }[]
+  laborHours?: number
+  photos?: string[]
+  customerNotes?: string
+  internalNotes?: string
+  nextServiceRecommendation?: string
+  nextServiceDue?: Date
+  nextServiceMileage?: number
+  createdAt: Date
+  updatedAt: Date
 }
 
 declare global {
